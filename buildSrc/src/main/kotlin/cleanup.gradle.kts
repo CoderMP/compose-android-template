@@ -30,10 +30,8 @@ tasks.register("templateCleanup") {
             newValue = "rootProject.name = \"$name\""
         )
 
-        changePackageName(
-            owner = owner,
-            name = name
-        )
+        changePackageName(owner = owner, name = name)
+        changeManifestFile(name = name)
 
         // cleanup the cleanup :)
         file(path = ".github/workflows/cleanup.yml").delete()
@@ -41,7 +39,7 @@ tasks.register("templateCleanup") {
             oldValue = "    cleanup\n",
             newValue = ""
         )
-        file(path = "buildSrc/src/main/kotlin/cleanup.gradle.kts").delete()
+        file(path = "buildSrc").deleteRecursively()
     }
 }
 
@@ -105,6 +103,50 @@ fun changePackageName(owner: String, name: String) {
                         oldPackageDir.deleteRecursively()
                     }
                 }
+            }
+    }
+}
+
+/**
+ * Changes the Android manifest file and related app configurations.
+ * @param name The name of the repository, usually the project name.
+ */
+fun changeManifestFile(name: String) {
+    val capitalizedName = name.split("-", "_")
+        .joinToString("") { it.replaceFirstChar { char -> char.uppercaseChar() } }
+
+    // Update AndroidManifest.xml files
+    projectDir.walk()
+        .filter { it.name == "AndroidManifest.xml" }
+        .forEach { manifestFile ->
+            manifestFile.replace(
+                oldValue = "android:name=\".app.TemplateApp\"",
+                newValue = "android:name=\".app.${capitalizedName}App\""
+            )
+        }
+
+    // Update strings.xml files
+    projectDir.walk()
+        .filter { it.name == "strings.xml" }
+        .forEach { stringsFile ->
+            stringsFile.replace(
+                oldValue = "Compose Android Template",
+                newValue = name.split("-", "_")
+                    .joinToString(" ") { it.replaceFirstChar { char -> char.uppercaseChar() } }
+            )
+        }
+
+    // Rename TemplateApp class files
+    srcDirectories().forEach { srcDir ->
+        srcDir.walk()
+            .filter { it.isFile && it.name == "TemplateApp.kt" }
+            .forEach { templateAppFile ->
+                // Update class name inside the file
+                templateAppFile.replace("class TemplateApp", "class ${capitalizedName}App")
+
+                // Rename the file itself
+                val newFile = File(templateAppFile.parent, "${capitalizedName}App.kt")
+                templateAppFile.renameTo(newFile)
             }
     }
 }
