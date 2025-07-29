@@ -102,7 +102,7 @@ fun changePackageName(owner: String, name: String) {
 
                     // Only delete old structure after successful copy
                     if (newPackageDir.exists() && newPackageDir.listFiles()?.isNotEmpty() == true) {
-                        File(javaDir, "com/codermp").deleteRecursively()
+                        oldPackageDir.deleteRecursively()
                     }
                 }
             }
