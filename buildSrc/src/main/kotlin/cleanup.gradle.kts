@@ -143,6 +143,7 @@ fun changeManifestFile(name: String) {
             .forEach { templateAppFile ->
                 // Update class name inside the file
                 templateAppFile.replace("class TemplateApp", "class ${capitalizedName}App")
+                templateAppFile.replace("this@TemplateApp", "this@${capitalizedName}App")
 
                 // Rename the file itself
                 val newFile = File(templateAppFile.parent, "${capitalizedName}App.kt")
