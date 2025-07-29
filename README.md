@@ -29,12 +29,12 @@ The template cleanup workflow will automatically:
 The architecture of the project is based off of a modular approach for the package structure, and enforces MVI-based layering within these packages. This allows you to focus on properly structuring your code in a clean manner, while having the flexibility to "export" these packages as modules as the project scales up in size.
 ```
 app/
-├── 📱 app/                 # Application layer (DI, navigation)
-		├── di/            # Dependency injection modules
-		├── navgiation/    # Navigation logic
+├── 📱 app/                # Application layer (DI, navigation)
+    ├── di/                # Dependency injection modules
+    ├── navgiation/        # Navigation logic
 ├── 🏗️ core/
-    ├── di/            # Business logic & models
-		├── domain/            # Business logic & models
+    ├── di/                # Business logic & models
+    ├── domain/            # Business logic & models
     └── presentation/      # UI components & theming
 ```
 
