@@ -26,12 +26,8 @@ tasks.register("templateCleanup") {
             newValue = "com.$owner.$name"
         )
         file(path = "settings.gradle.kts").replace(
-            oldValue = "rootProject.name = (\"compose-android-template\")",
-            newValue = "rootProject.name = (\"$name\")"
-        )
-        file(path = "gradle.properties").replace(
-            oldValue = "com.codermp.composeandroidtemplate",
-            newValue = "com.$owner.$name"
+            oldValue = "rootProject.name = \"compose-android-template\"",
+            newValue = "rootProject.name = \"$name\""
         )
 
         changePackageName(
@@ -40,7 +36,7 @@ tasks.register("templateCleanup") {
         )
 
         // cleanup the cleanup :)
-        file(path = ".github/workflows/cleanup.yaml").delete()
+        file(path = ".github/workflows/cleanup.yml").delete()
         file(path = "build.gradle.kts").replace(
             oldValue = "    cleanup\n",
             newValue = ""
@@ -54,10 +50,6 @@ fun String.sanitized() = replace(
     replacement = ""
 ).lowercase()
 
-fun File.replace(regex: Regex, replacement: String) {
-    writeText(text = readText().replace(regex, replacement))
-}
-
 fun File.replace(oldValue: String, newValue: String) {
     writeText(text = readText().replace(oldValue, newValue))
 }
@@ -66,8 +58,11 @@ fun srcDirectories() = projectDir.listFiles()!!
     .filter { it.isDirectory && it.name != "buildSrc" }
     .flatMap { it.listFiles()!!.filter { it.isDirectory && it.name == "src" } }
 
+@Suppress("NestedBlockDepth")
 /**
  * Change the package name of the project.
+ * @param owner The owner of the repository, usually the GitHub username.
+ * @param name The name of the repository, usually the project name.
  */
 fun changePackageName(owner: String, name: String) {
     srcDirectories().forEach {
@@ -77,14 +72,39 @@ fun changePackageName(owner: String, name: String) {
             it.replace("com.codermp.composeandroidtemplate", "com.$owner.$name")
         }
     }
-    srcDirectories().forEach {
-        it.listFiles()!!.filter { it.isDirectory } // down to src/main
-            .flatMap { it.listFiles()!!.filter { it.isDirectory } } // down to src/main/java
-            .forEach {
-                val newDir = File(it, "com/$owner/$name")
-                newDir.parentFile.mkdirs()
-                File(it, "com/codermp/composeandroidtemplate").renameTo(newDir)
-                File(it, "com/codermp").deleteRecursively()
+    srcDirectories().forEach { srcDir ->
+        srcDir
+            .listFiles()!!
+            .filter { it.isDirectory } // down to src/main, src/test, etc.
+            .flatMap {
+                it.listFiles()!!.filter { it.isDirectory } // down to src/main/java, etc.
+            }
+            .forEach { javaDir ->
+                val oldPackageDir = File(javaDir, "com/codermp/composeandroidtemplate")
+
+                if (oldPackageDir.exists()) {
+                    val newPackageDir = File(javaDir, "com/$owner/$name")
+
+                    // Create parent directories for new package
+                    newPackageDir.parentFile.mkdirs()
+
+                    // Move files instead of renaming directory
+                    if (oldPackageDir.isDirectory) {
+                        oldPackageDir.listFiles()?.forEach { file ->
+                            val targetFile = File(newPackageDir, file.name)
+                            if (file.isDirectory) {
+                                file.copyRecursively(targetFile)
+                            } else {
+                                file.copyTo(targetFile)
+                            }
+                        }
+                    }
+
+                    // Only delete old structure after successful copy
+                    if (newPackageDir.exists() && newPackageDir.listFiles()?.isNotEmpty() == true) {
+                        File(javaDir, "com/codermp").deleteRecursively()
+                    }
+                }
             }
     }
 }
