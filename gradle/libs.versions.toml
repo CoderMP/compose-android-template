@@ -1,6 +1,6 @@
 [versions]
 activity-compose = "1.10.1"
-agp = "8.11.1"
+agp = "8.12.0"
 annotation = "1.9.1"
 appcompat = "1.7.1"
 assert-k = "0.28.1"
@@ -16,6 +16,7 @@ desugar-jdk-libs = "2.1.5"
 detekt = "1.23.8"
 detektCompose = "0.4.26"
 espresso-core = "3.7.0"
+glance = "1.1.1"
 junit = "4.13.2"
 junit5 = "5.13.4"
 junit5-compose = "1.8.0"
@@ -58,6 +59,8 @@ material = { group = "com.google.android.material", name = "material", version.r
 # AndroidX Libraries
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "core-splashscreen" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
+androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glance" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 androidx-security-crypto-ktx = { module = "androidx.security:security-crypto-ktx", version.ref = "security-crypto-ktx" }
@@ -78,11 +81,9 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material-icons-extended" }
 
 # 3rd Party Libraries
-agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar-jdk-libs" }
 detekt-compose = { group = "io.nlopez.compose.rules", name = "detekt", version.ref = "detektCompose"}
-kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 koin-android-workmanager = { group = "io.insert-koin", name = "koin-androidx-workmanager", version.ref = "koin" }
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
@@ -146,6 +147,10 @@ compose = [
 compose-debug = [
     "androidx-compose-ui-tooling",
     "androidx-compose-ui-test-manifest",
+]
+glance = [
+    "androidx-glance-appwidget",
+    "androidx-glance-material3"
 ]
 koin = [
     "koin-core",
