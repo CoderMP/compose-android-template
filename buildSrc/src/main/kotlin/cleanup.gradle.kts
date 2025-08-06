@@ -34,6 +34,9 @@ tasks.register("templateCleanup") {
 
         changePackageName(owner = owner, name = name)
         changeManifestFile(name = nameCasePreserved)
+        changeAppClassFile(name = nameCasePreserved)
+        changeThemeFile(name = nameCasePreserved)
+        changeResourceFiles(name = nameCasePreserved)
 
         // cleanup the cleanup :)
         file(path = ".github/workflows/cleanup.yml").delete()
@@ -45,22 +48,43 @@ tasks.register("templateCleanup") {
     }
 }
 
+/**
+ * [String] extension function that sanitizes a string by removing all non-alphanumeric characters and
+ * converting it to lowercase.
+ */
 fun String.sanitized() = replace(
     regex = Regex(pattern = "[^A-Za-z0-9]"),
     replacement = ""
 ).lowercase()
 
+/**
+ * [String] extension function that sanitizes a string by removing all non-alphanumeric characters
+ * while preserving the case. This is useful for cases where the original case of the string is
+ * important, such as in class names.
+ */
 fun String.sanitizedPreservingCase() = split(regex = Regex("[^A-Za-z0-9]"))
     .filter { it.isNotEmpty() }
     .joinToString("")
 
+/**
+ * [File] extension function that replaces all occurrences of `oldValue` with `newValue` in the file.
+ * @param oldValue The string to be replaced.
+ * @param newValue The string to replace with.
+ */
 fun File.replace(oldValue: String, newValue: String) {
     writeText(text = readText().replace(oldValue, newValue))
 }
 
-fun srcDirectories() = projectDir.listFiles()!!
+/**
+ * Returns a list of source directories in the project.
+ * It excludes the `buildSrc` directory to avoid unnecessary processing.
+ */
+fun srcDirectories() = projectDir
+    .listFiles()!!
     .filter { it.isDirectory && it.name != "buildSrc" }
-    .flatMap { it.listFiles()!!.filter { it.isDirectory && it.name == "src" } }
+    .flatMap {
+        it.listFiles()!!.filter { it.isDirectory && it.name == "src" }
+    }
 
 @Suppress("NestedBlockDepth")
 /**
@@ -69,12 +93,18 @@ fun srcDirectories() = projectDir.listFiles()!!
  * @param name The name of the repository, usually the project name.
  */
 fun changePackageName(owner: String, name: String) {
-    srcDirectories().forEach {
-        it.walk().filter {
-            it.isFile && (it.extension == "kt" || it.extension == "kts" || it.extension == "xml")
-        }.forEach {
-            it.replace("com.codermp.composeandroidtemplate", "com.$owner.$name")
-        }
+    srcDirectories().forEach { directory ->
+        directory
+            .walk()
+            .filter {
+                it.isFile && (it.extension == "kt" || it.extension == "kts" || it.extension == "xml")
+            }
+            .forEach { file ->
+                file.replace(
+                    oldValue = "com.codermp.composeandroidtemplate",
+                    newValue = "com.$owner.$name"
+                )
+            }
     }
     srcDirectories().forEach { srcDir ->
         srcDir
@@ -118,8 +148,9 @@ fun changePackageName(owner: String, name: String) {
  * @param name The name of the repository, usually the project name.
  */
 fun changeManifestFile(name: String) {
-    // Update AndroidManifest.xml files
-    projectDir.walk()
+    // Update AndroidManifest.xml file
+    projectDir
+        .walk()
         .filter { it.name == "AndroidManifest.xml" }
         .forEach { manifestFile ->
             manifestFile.replace(
@@ -131,19 +162,81 @@ fun changeManifestFile(name: String) {
                 newValue = "android:theme=\"@style/Theme.$name.Starting\"",
             )
         }
+}
 
-    // Update strings.xml files
-    projectDir.walk()
+/**
+ * Change the main application class file to reflect the new project name.
+ * @param name The name of the repository, usually the project name.
+ */
+fun changeAppClassFile(name: String) {
+    // Rename TemplateApp class file
+    srcDirectories()
+        .forEach { srcDir ->
+            srcDir
+                .walk()
+                .filter { it.isFile && it.name == "TemplateApp.kt" }
+                .forEach { templateAppFile ->
+                    // Update class name inside the file
+                    templateAppFile.replace(
+                        oldValue = "class TemplateApp", newValue = "class ${name}App"
+                    )
+                    templateAppFile.replace(
+                        oldValue = "this@TemplateApp", newValue = "this@${name}App"
+                    )
+
+                    // Rename the file itself
+                    val newFile = File(templateAppFile.parent, "${name}App.kt")
+                    templateAppFile.renameTo(newFile)
+                }
+        }
+}
+
+/**
+ * Change the Compose theme file to reflect the new project name.
+ * @param name The name of the repository, usually the project name.
+ */
+fun changeThemeFile(name: String) {
+    srcDirectories()
+        .forEach { srcDir ->
+            srcDir
+                .walk()
+                .filter { it.isFile && it.name == "Theme.kt" }
+                .forEach { themeFile ->
+                    themeFile.replace(
+                        oldValue = "ComposeAndroidTemplateTheme", newValue = "${name}Theme"
+                    )
+                }
+        }
+}
+
+/**
+ * Change the resource files such as themes.xml, strings.xml, and splash.xml.
+ * @param name The name of the repository, usually the project name.
+ */
+fun changeResourceFiles(name: String) {
+    // Update themes.xml file
+    projectDir
+        .walk()
+        .filter { it.name == "themes.xml" }
+        .forEach { themesFile ->
+            themesFile.replace(
+                oldValue = "Theme.ComposeAndroidTemplate", newValue = "Theme.$name"
+            )
+        }
+
+    // Update strings.xml file
+    projectDir
+        .walk()
         .filter { it.name == "strings.xml" }
         .forEach { stringsFile ->
             stringsFile.replace(
-                oldValue = "Compose Android Template",
-                newValue = name
+                oldValue = "Compose Android Template", newValue = name
             )
         }
 
     // Update splash.xml file
-    projectDir.walk()
+    projectDir
+        .walk()
         .filter { it.name == "splash.xml" }
         .forEach { splashFile ->
             splashFile.replace(
@@ -151,19 +244,4 @@ fun changeManifestFile(name: String) {
                 newValue = "Theme.${name}.Starting"
             )
         }
-
-    // Rename TemplateApp class files
-    srcDirectories().forEach { srcDir ->
-        srcDir.walk()
-            .filter { it.isFile && it.name == "TemplateApp.kt" }
-            .forEach { templateAppFile ->
-                // Update class name inside the file
-                templateAppFile.replace("class TemplateApp", "class ${name}App")
-                templateAppFile.replace("this@TemplateApp", "this@${name}App")
-
-                // Rename the file itself
-                val newFile = File(templateAppFile.parent, "${name}App.kt")
-                templateAppFile.renameTo(newFile)
-            }
-    }
 }
