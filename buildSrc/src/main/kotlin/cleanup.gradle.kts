@@ -64,7 +64,13 @@ fun String.sanitized() = replace(
  */
 fun String.sanitizedPreservingCase() = split(regex = Regex("[^A-Za-z0-9]"))
     .filter { it.isNotEmpty() }
-    .joinToString("")
+    .joinToString("") { word ->
+        when {
+            word.all { it.isUpperCase() } -> word
+            word.first().isUpperCase() -> word
+            else -> word.replaceFirstChar { it.uppercaseChar() }
+        }
+    }
 
 /**
  * [File] extension function that replaces all occurrences of `oldValue` with `newValue` in the file.
