@@ -21,6 +21,8 @@ tasks.register("templateCleanup") {
             it[0].sanitized() to it[1].sanitized()
         }
 
+        val nameCasePreserved = repository.split("/")[1].sanitizedPreservingCase()
+
         file(path = "gradle/libs.versions.toml").replace(
             oldValue = "com.codermp.composeandroidtemplate",
             newValue = "com.$owner.$name"
@@ -31,7 +33,7 @@ tasks.register("templateCleanup") {
         )
 
         changePackageName(owner = owner, name = name)
-        changeManifestFile(name = name)
+        changeManifestFile(name = nameCasePreserved)
 
         // cleanup the cleanup :)
         file(path = ".github/workflows/cleanup.yml").delete()
@@ -47,6 +49,10 @@ fun String.sanitized() = replace(
     regex = Regex(pattern = "[^A-Za-z0-9]"),
     replacement = ""
 ).lowercase()
+
+fun String.sanitizedPreservingCase() = split(regex = Regex("[^A-Za-z0-9]"))
+    .filter { it.isNotEmpty() }
+    .joinToString("")
 
 fun File.replace(oldValue: String, newValue: String) {
     writeText(text = readText().replace(oldValue, newValue))
@@ -112,16 +118,17 @@ fun changePackageName(owner: String, name: String) {
  * @param name The name of the repository, usually the project name.
  */
 fun changeManifestFile(name: String) {
-    val capitalizedName = name.split("-", "_")
-        .joinToString("") { it.replaceFirstChar { char -> char.uppercaseChar() } }
-
     // Update AndroidManifest.xml files
     projectDir.walk()
         .filter { it.name == "AndroidManifest.xml" }
         .forEach { manifestFile ->
             manifestFile.replace(
                 oldValue = "android:name=\".app.TemplateApp\"",
-                newValue = "android:name=\".app.${capitalizedName}App\""
+                newValue = "android:name=\".app.${name}App\""
+            )
+            manifestFile.replace(
+                oldValue = "android:theme=\"@style/Theme.ComposeAndroidTemplate.Starting\"",
+                newValue = "android:theme=\"@style/Theme.$name.Starting\"",
             )
         }
 
@@ -131,8 +138,17 @@ fun changeManifestFile(name: String) {
         .forEach { stringsFile ->
             stringsFile.replace(
                 oldValue = "Compose Android Template",
-                newValue = name.split("-", "_")
-                    .joinToString(" ") { it.replaceFirstChar { char -> char.uppercaseChar() } }
+                newValue = name
+            )
+        }
+
+    // Update splash.xml file
+    projectDir.walk()
+        .filter { it.name == "splash.xml" }
+        .forEach { splashFile ->
+            splashFile.replace(
+                oldValue = "Theme.ComposeAndroidTemplate.Starting",
+                newValue = "Theme.${name}.Starting"
             )
         }
 
@@ -142,11 +158,11 @@ fun changeManifestFile(name: String) {
             .filter { it.isFile && it.name == "TemplateApp.kt" }
             .forEach { templateAppFile ->
                 // Update class name inside the file
-                templateAppFile.replace("class TemplateApp", "class ${capitalizedName}App")
-                templateAppFile.replace("this@TemplateApp", "this@${capitalizedName}App")
+                templateAppFile.replace("class TemplateApp", "class ${name}App")
+                templateAppFile.replace("this@TemplateApp", "this@${name}App")
 
                 // Rename the file itself
-                val newFile = File(templateAppFile.parent, "${capitalizedName}App.kt")
+                val newFile = File(templateAppFile.parent, "${name}App.kt")
                 templateAppFile.renameTo(newFile)
             }
     }

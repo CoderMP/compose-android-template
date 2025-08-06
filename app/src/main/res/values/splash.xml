@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ComposeAndroidTemplate.Starting" parent="Theme.SplashScreen">
+        <item name="android:actionBarStyle">@style/Theme.AppCompat.NoActionBar</item>
+        <!-- TODO: Add your windowSplashScreenBackground color property-->
+        <!-- TODO: Add your windowSplashScreenAnimatedIcon drawable property-->
+        <item name="windowSplashScreenBackground">@color/purple_700</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.ComposeAndroidTemplate</item>
+    </style>
+</resources>
