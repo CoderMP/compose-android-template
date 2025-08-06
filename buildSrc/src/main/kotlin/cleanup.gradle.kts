@@ -223,10 +223,6 @@ fun changeResourceFiles(name: String) {
                 oldValue = "Theme.ComposeAndroidTemplate",
                 newValue = "Theme.$name"
             )
-            themesFile.replace(
-                oldValue = "<item name=\"postSplashScreenTheme\">@style/Theme.ComposeAndroidTemplate</item>",
-                newValue = "<item name=\"postSplashScreenTheme\">@style/Theme.$name</item>"
-            )
         }
 
     // Update strings.xml file
@@ -247,7 +243,11 @@ fun changeResourceFiles(name: String) {
         .forEach { splashFile ->
             splashFile.replace(
                 oldValue = "Theme.ComposeAndroidTemplate.Starting",
-                newValue = "Theme.${name}.Starting"
+                newValue = "Theme.$name.Starting"
+            )
+            splashFile.replace(
+                oldValue = "Theme.ComposeAndroidTemplate",
+                newValue = "Theme.$name"
             )
         }
 }
