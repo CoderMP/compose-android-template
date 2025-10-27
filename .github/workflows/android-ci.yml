@@ -87,7 +87,7 @@ jobs:
         run: ./gradlew detekt
 
       - name: Upload Detekt reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: detekt-reports
@@ -124,7 +124,7 @@ jobs:
         run: ./gradlew testDebugUnitTest
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: test-results
