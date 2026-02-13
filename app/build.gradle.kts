@@ -104,7 +104,6 @@ dependencies {
 
     //region 3rd Party Libraries
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-    //detektPlugins(libs.detekt.compose)
     implementation(libs.coil.compose)
     implementation(libs.bundles.koin)
     implementation(libs.bundles.koin.compose)
