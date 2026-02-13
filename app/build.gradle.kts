@@ -1,3 +1,4 @@
+import dev.detekt.gradle.Detekt
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -75,9 +76,6 @@ kotlin {
 room {
     schemaDirectory(path = "$projectDir/schemas")
 }
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
 
 dependencies {
     //region AndroidX Libraries
@@ -148,4 +146,17 @@ dependencies {
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.turbine)
     //endregion
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
+tasks.withType<Detekt>().configureEach {
+    reports {
+        checkstyle.required.set(true)
+        html.required.set(true)
+        sarif.required.set(true)
+        markdown.required.set(true)
+    }
 }
