@@ -14,14 +14,14 @@ import kotlinx.coroutines.withContext
  * @param flow The [Flow] to observe.
  * @param key1 The first key to use for the [LaunchedEffect].
  * @param key2 The second key to use for the [LaunchedEffect].
- * @param onEvent The function to call when a new event is emitted.
+ * @param onEvent The suspend function to call when a new event is emitted.
  */
 @Composable
 fun <T> ObserveAsEvents(
     flow: Flow<T>,
     key1: Any? = null,
     key2: Any? = null,
-    onEvent: (T) -> Unit
+    onEvent: suspend (T) -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 

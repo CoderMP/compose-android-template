@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.detekt)
     alias(libs.plugins.junit5)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -12,9 +11,6 @@ plugins {
 }
 
 android {
-    namespace = libs.versions.project.application.id.get()
-    compileSdk = libs.versions.project.compile.sdk.version.get().toInt()
-
     buildFeatures {
         buildConfig = true
         compose = true
@@ -48,6 +44,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    compileSdk {
+        version = release(libs.versions.project.compile.sdk.version.get().toInt()) {
+            minorApiLevel = 1
+        }
+    }
     defaultConfig {
         applicationId = libs.versions.project.application.id.get()
         minSdk = libs.versions.project.min.sdk.version.get().toInt()
@@ -57,36 +58,39 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    detekt {
-        toolVersion = libs.versions.detekt.get()
-        config.setFrom(file("../config/detekt/detekt.yml"))
-        buildUponDefaultConfig = true
-        autoCorrect = true
+    namespace = libs.versions.project.application.id.get()
+}
+detekt {
+    toolVersion = libs.versions.detekt.get()
+    config.setFrom(file("../config/detekt/detekt.yml"))
+    buildUponDefaultConfig = true
+    autoCorrect = true
+}
+kotlin {
+    compilerOptions {
+        optIn.add("kotlin.RequiresOptIn")
+        jvmTarget.set(JvmTarget.JVM_17)
     }
-    kotlin {
-        compilerOptions {
-            optIn.add("kotlin.RequiresOptIn")
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
-    }
-    room {
-        schemaDirectory(path = "$projectDir/schemas")
-    }
-    tasks.withType<Test> {
-        useJUnitPlatform()
-    }
+}
+room {
+    schemaDirectory(path = "$projectDir/schemas")
+}
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 dependencies {
     //region AndroidX Libraries
-    implementation(libs.annotation)
-    implementation(libs.appcompat)
+    implementation(libs.androidx.concurrent.futures)
+    implementation(libs.androidx.concurrent.futures.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.security.crypto.ktx)
     implementation(libs.androidx.work)
+    implementation(libs.annotation)
+    implementation(libs.appcompat)
     implementation(libs.bundles.glance)
     implementation(libs.material)
     implementation(libs.room.runtime)
@@ -102,7 +106,7 @@ dependencies {
 
     //region 3rd Party Libraries
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-    detektPlugins(libs.detekt.compose)
+    //detektPlugins(libs.detekt.compose)
     implementation(libs.coil.compose)
     implementation(libs.bundles.koin)
     implementation(libs.bundles.koin.compose)
